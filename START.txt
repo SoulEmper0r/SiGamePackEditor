@@ -1,0 +1,14 @@
+SiGame Pack Editor
+Version 1.0.0
+
+START
+1. Extract the release ZIP into a folder.
+2. Open index.html in a modern browser.
+3. Use «Открыть .siq» or drag one or more SIQ files into the editor.
+4. Exported packs are downloaded separately; the original SIQ files are not overwritten.
+
+UPDATES
+Click «Проверить обновления». If a newer version is available, use the download link shown in the status bar. Close the old editor tab, extract the new release ZIP into a new folder, then open its index.html.
+
+RELEASE FILES
+Release archives contain only the runtime files needed to use the editor. Source files and the packaging script are kept in the GitHub repository.

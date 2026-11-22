@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SiGame Pack Editor</title>
+<link rel="stylesheet" href="./css/app.css">
+</head>
+<body>
+<main class="app">
+<header>
+  <div><h1>SiGame Pack Editor</h1><p>Локальный SIQ v5 Reader / Writer · Версия <span id="appVersionLabel">1.0.0</span></p></div>
+  <div class="actions">
+    <button id="checkUpdatesBtn" type="button" title="Проверить новую версию на GitHub">Проверить обновления</button>
+    <label>Открыть .siq<input id="siqFile" type="file" accept=".siq,application/zip"></label>
+    <button id="newPackBtn" type="button" title="Создать пустой SIQ v5 пакет">Новый пак</button>
+    <button id="undoBtn" type="button" disabled title="Отменить последнее действие">↶ Отменить</button>
+    <button id="redoBtn" type="button" disabled title="Повторить отменённое действие">↷ Повторить</button>
+    <button id="mergePacksBtn" type="button" disabled title="Откройте минимум два пакета">Объединить паки</button>
+    <button id="bulkQuestionTypesBtn" type="button" disabled title="Массово назначить типы вопросов в открытом пакете">Типы всех вопросов</button>
+    <button id="qualityLimitsBtn" type="button" disabled title="Проверить ограничения SIGame">Лимиты SIGame</button>
+    <button id="exportBtn" type="button" disabled>Экспорт .siq</button>
+  </div>
+</header>
+<div class="pack-tabs-row">
+  <div id="packTabs" class="pack-tabs" role="tablist" aria-label="Открытые пакеты" hidden></div>
+  <div id="packDropZone" class="pack-drop-zone" role="region" aria-label="Добавление SIQ-пакетов перетаскиванием" title="Перетащите сюда один или несколько файлов .siq">Перетащите сюда один или несколько .siq</div>
+</div>
+<div id="statusBar" class="status-bar" role="status" aria-live="polite">Откройте пакет .siq</div>
+<nav class="view-tabs" aria-label="Рабочие режимы">
+  <button id="editorTab" class="view-tab active" type="button" aria-selected="true">Редактор</button>
+  <button id="resourcesTab" class="view-tab" type="button" aria-selected="false" disabled>Содержимое пакета</button>
+</nav>
+<section class="workspace">
+  <aside>
+    <h2>Структура пакета</h2>
+    <div id="tree" class="tree">Пакет ещё не открыт.</div>
+  </aside>
+  <section class="main">
+    <h2 id="selectionTitle">Выбор</h2>
+    <div id="selectionInfo">Выберите раунд, тему или вопрос.</div>
+    <div id="actions" class="node-actions"></div>
+  </section>
+</section>
+<section id="resourceExplorer" class="resource-explorer" hidden aria-label="Содержимое ZIP-пакета">
+  <div class="resource-toolbar">
+    <div class="resource-filters">
+      <label class="resource-filter">Поиск<input id="resourceSearch" type="search" placeholder="Имя или путь файла"></label>
+      <label class="resource-filter resource-folder-filter-legacy" hidden>Папка<select id="resourceFolderFilter"><option value="">Все папки</option></select></label>
+      <label class="resource-filter">Тип<select id="resourceTypeFilter">
+        <option value="all">Все типы</option><option value="image">Изображения</option><option value="audio">Аудио</option>
+        <option value="video">Видео</option><option value="html">HTML</option><option value="text">Текст</option>
+        <option value="binary">Другие</option><option value="folder">Папки</option>
+      </select></label>
+      <label class="resource-filter">Состояние<select id="resourceStatusFilter">
+        <option value="all">Все состояния</option><option value="used">Используется</option>
+        <option value="unused">Не используется</option><option value="missing">Отсутствует</option>
+        <option value="system">Системный файл</option>
+      </select></label>
+      <label class="resource-filter">Сортировка<select id="resourceSort">
+        <option value="name">По имени</option><option value="size-asc">Сначала меньшие</option>
+        <option value="size-desc">Сначала большие</option><option value="type">По типу</option><option value="status">По использованию</option>
+      </select></label>
+    </div>
+    <div class="resource-size-filters">
+      <label class="resource-size-filter">Размер от, КБ<input id="resourceSizeMin" type="number" min="0" step="1" placeholder="Без минимума"></label>
+      <label class="resource-size-filter">Размер до, КБ<input id="resourceSizeMax" type="number" min="0" step="1" placeholder="Без максимума"></label>
+    </div>
+    <div id="resourceSummary" class="resource-summary">Откройте пакет для просмотра файлов.</div>
+  </div>
+  <div id="resourceBulkActions" class="resource-bulk-actions" aria-label="Групповые операции с ресурсами"></div>
+  <div class="resource-explorer-layout">
+    <section class="resource-folder-panel">
+      <div class="resource-panel-heading"><h2>Структура папок</h2></div>
+      <div id="resourceFolderTree" class="resource-folder-tree" aria-label="Навигация по папкам пакета"></div>
+    </section>
+    <section class="resource-list-panel">
+      <div class="resource-panel-heading"><h2>Файлы архива</h2><span id="resourceListCount"></span></div>
+      <div id="resourceList" class="resource-list" aria-live="polite"></div>
+    </section>
+    <section class="resource-detail-panel">
+      <div id="resourceDetails" class="resource-details">
+        <div class="resource-preview-empty">Выберите файл слева, чтобы увидеть свойства и предпросмотр.</div>
+      </div>
+    </section>
+  </div>
+</section>
+<details class="diagnostics">
+  <summary>Диагностика · статистика и журнал операций</summary>
+  <div class="diagnostics-grid">
+    <section class="diagnostics-panel">
+      <h2>Статистика</h2>
+      <div id="details">Пакет ещё не открыт.</div>
+    </section>
+    <section class="diagnostics-panel">
+      <h2>Журнал операций</h2>
+      <pre id="output"></pre>
+    </section>
+  </div>
+</details>
+</main>
+<script src="./js/app.bundle.js"></script>
+</body>
+</html>
